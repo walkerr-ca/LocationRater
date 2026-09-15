@@ -23,7 +23,7 @@ import { add } from "ionicons/icons";
 import { AddRatingModal } from "../../components/AddRatingModal";
 
 const Ratings: React.FC = () => {
-  const { data, error, isLoading, isSuccess, isError } = useRatings();
+  const { data, isLoading } = useRatings();
 
   return (
     <IonPage>
