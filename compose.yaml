@@ -1,0 +1,22 @@
+name: location-rater
+
+services:
+  db:
+    container_name: location-rater-postgres
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lr
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: "pg_isready -U postgres -d lr"
+      interval: 8s
+      retries: 10
+
+volumes:
+  pgdata:
+    name: location-rater-pg-data
