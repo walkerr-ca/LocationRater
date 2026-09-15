@@ -13,6 +13,7 @@ import { IonReactRouter } from "@ionic/react-router";
 import { star, pin, person } from "ionicons/icons";
 
 import LoginPage from "./pages/login";
+import RegisterPage from "./pages/register";
 import RatingsPage from "./pages/ratings";
 
 /* Core CSS required for Ionic components to work properly */
@@ -48,6 +49,16 @@ import "./theme/variables.css";
 import { useAuth } from "./hooks/auth";
 
 setupIonicReact();
+
+const GuestGuard = () => {
+  const { accessToken } = useAuth();
+
+  if (accessToken && accessToken.data.exp > Date.now() / 1000) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
 
 const AuthGuard = () => {
   const { accessToken } = useAuth();
@@ -91,8 +102,10 @@ const App: React.FC = () => {
     <IonApp>
       <IonReactRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<LoginPage />} />
+          <Route element={<GuestGuard />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
 
           <Route element={<AuthGuard />}>
             <Route path="/*" element={<ProtectedRoutes />} />

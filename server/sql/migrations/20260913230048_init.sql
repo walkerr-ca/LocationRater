@@ -19,14 +19,11 @@ create table session (
 create table location (
   id int primary key generated always as identity,
   name varchar(255) not null,
-  street_address varchar(255) not null,
-  apartment varchar(255),
-  city varchar(255) not null,
-  state varchar(255) not null,
-  zip varchar(255) not null,
-  country varchar(255) not null default 'United States of America',
+  longitude float not null,
+  latitude float not null,
   created_at timestamp not null default now(),
-  deleted_at timestamp
+  deleted_at timestamp,
+  unique (longitude, latitude)
 );
 
 create table review (

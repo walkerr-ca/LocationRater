@@ -15,46 +15,34 @@ from
 where
   deleted_at is null
 order by
-  created_at desc
-limit
-  sqlc.arg ('limit')
-offset
-  sqlc.arg ('offset');
+  created_at desc;
 
--- name: SelectLocationsByRadius :many
+-- name: SelectLocationsByDistance :many
 select
-  *
+  id,
+  name,
+  longitude,
+  latitude,
+  created_at,
+  deleted_at,
+  SQRT(
+    POW (longitude - sqlc.arg ('longitude'), 2) + POW (latitude - sqlc.arg ('latitude'), 2)
+  ) as distance
 from
   location
 where
   deleted_at is null
 order by
-  created_at desc
-limit
-  sqlc.arg ('limit')
-offset
-  sqlc.arg ('offset');
+  distance asc;
 
 -- name: CreateLocation :one
 insert into
-  location (
-    name,
-    street_address,
-    apartment,
-    city,
-    state,
-    zip,
-    country
-  )
+  location (name, longitude, latitude)
 values
   (
     sqlc.arg ('name'),
-    sqlc.arg ('street_address'),
-    sqlc.arg ('apartment'),
-    sqlc.arg ('city'),
-    sqlc.arg ('state'),
-    sqlc.arg ('zip'),
-    sqlc.arg ('country')
+    sqlc.arg ('longitude'),
+    sqlc.arg ('latitude')
   )
 returning
   *;

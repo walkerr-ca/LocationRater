@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   IonButton,
   IonContent,
@@ -11,27 +11,27 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
-import { useLoginMutation, LoginSchema, loginSchema } from "../hooks/mutations/login";
-import { useAuth } from "../hooks/auth";
+import { useRegisterMutation, registerSchema, RegisterSchema } from "../hooks/mutations/register";
 
 const Login: React.FC = () => {
-  const { setAccessToken } = useAuth();
-  const { mutate, isPending, data, error } = useLoginMutation();
-  const [input, setInput] = useState<LoginSchema>({
+  const navigate = useNavigate();
+  const { mutate, isPending, data, error } = useRegisterMutation();
+  const [input, setInput] = useState<RegisterSchema>({
     username: "",
     password: "",
+    secondPassword: "",
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (data && data.success) {
-      setAccessToken(data.result.token);
+      navigate("/login");
     }
   }, [data]);
 
   useEffect(() => {
-    const { error } = loginSchema.safeParse(input);
+    const { error } = registerSchema.safeParse(input);
     if (error) {
       const errorDict: Record<string, string> = {};
       error.issues.forEach((issue) => {
@@ -49,7 +49,7 @@ const Login: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Log In</IonTitle>
+          <IonTitle>Create Account</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -69,7 +69,7 @@ const Login: React.FC = () => {
             }}
           >
             <h1>LocationRater</h1>
-            <p>Welcome back!</p>
+            <p>Welcome!</p>
           </IonText>
           <div
             style={{
@@ -114,6 +114,28 @@ const Login: React.FC = () => {
               </IonText>
             )}
           </div>
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
+            <IonInput
+              label="Confirm Password"
+              labelPlacement="floating"
+              fill="outline"
+              placeholder="Enter password"
+              type="password"
+              value={input.secondPassword}
+              onIonInput={(e) =>
+                setInput({ ...input, secondPassword: (e.target.value ?? "").toString() })
+              }
+            />
+            {validationErrors["secondPassword"] && (
+              <IonText color="danger">
+                <p>{validationErrors["secondPassword"]}</p>
+              </IonText>
+            )}
+          </div>
           {error && (
             <IonText color="danger">
               <p>{error.message}</p>
@@ -124,10 +146,10 @@ const Login: React.FC = () => {
             onClick={() => mutate(input)}
             disabled={isPending || Object.keys(validationErrors).length > 0}
           >
-            Login
+            Register
           </IonButton>
-          <Link to="/register">
-            <IonButton color="primary">Register</IonButton>
+          <Link to="/login">
+            <IonButton color="primary">Login</IonButton>
           </Link>
         </div>
       </IonContent>

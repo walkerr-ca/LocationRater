@@ -9,16 +9,12 @@ import (
 )
 
 type Location struct {
-	ID            int32
-	Name          string
-	StreetAddress string
-	Apartment     pgtype.Text
-	City          string
-	State         string
-	Zip           string
-	Country       string
-	CreatedAt     pgtype.Timestamp
-	DeletedAt     pgtype.Timestamp
+	ID        int32
+	Name      string
+	Longitude float64
+	Latitude  float64
+	CreatedAt pgtype.Timestamp
+	DeletedAt pgtype.Timestamp
 }
 
 type Review struct {

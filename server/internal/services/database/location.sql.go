@@ -7,11 +7,59 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createLocation = `-- name: CreateLocation :one
+insert into
+  location (name, longitude, latitude)
+values
+  (
+    $1,
+    $2,
+    $3
+  )
+returning
+  id, name, longitude, latitude, created_at, deleted_at
+`
+
+type CreateLocationParams struct {
+	Name      string
+	Longitude float64
+	Latitude  float64
+}
+
+func (q *Queries) CreateLocation(ctx context.Context, arg CreateLocationParams) (Location, error) {
+	row := q.db.QueryRow(ctx, createLocation, arg.Name, arg.Longitude, arg.Latitude)
+	var i Location
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Longitude,
+		&i.Latitude,
+		&i.CreatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const deleteLocation = `-- name: DeleteLocation :exec
+update location
+set
+  deleted_at = now()
+where
+  id = $1
+`
+
+func (q *Queries) DeleteLocation(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteLocation, id)
+	return err
+}
 
 const selectLocationById = `-- name: SelectLocationById :one
 select
-  id, name, street_address, apartment, city, state, zip, country, created_at, deleted_at
+  id, name, longitude, latitude, created_at, deleted_at
 from
   location
 where
@@ -25,12 +73,8 @@ func (q *Queries) SelectLocationById(ctx context.Context, id int32) (Location, e
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.StreetAddress,
-		&i.Apartment,
-		&i.City,
-		&i.State,
-		&i.Zip,
-		&i.Country,
+		&i.Longitude,
+		&i.Latitude,
 		&i.CreatedAt,
 		&i.DeletedAt,
 	)
@@ -39,24 +83,17 @@ func (q *Queries) SelectLocationById(ctx context.Context, id int32) (Location, e
 
 const selectLocations = `-- name: SelectLocations :many
 select
-  id, name, street_address, apartment, city, state, zip, country, created_at, deleted_at
+  id, name, longitude, latitude, created_at, deleted_at
 from
   location
 where
   deleted_at is null
-limit
-  $2
-offset
-  $1
+order by
+  created_at desc
 `
 
-type SelectLocationsParams struct {
-	Offset int32
-	Limit  int32
-}
-
-func (q *Queries) SelectLocations(ctx context.Context, arg SelectLocationsParams) ([]Location, error) {
-	rows, err := q.db.Query(ctx, selectLocations, arg.Offset, arg.Limit)
+func (q *Queries) SelectLocations(ctx context.Context) ([]Location, error) {
+	rows, err := q.db.Query(ctx, selectLocations)
 	if err != nil {
 		return nil, err
 	}
@@ -67,14 +104,72 @@ func (q *Queries) SelectLocations(ctx context.Context, arg SelectLocationsParams
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.StreetAddress,
-			&i.Apartment,
-			&i.City,
-			&i.State,
-			&i.Zip,
-			&i.Country,
+			&i.Longitude,
+			&i.Latitude,
 			&i.CreatedAt,
 			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectLocationsByDistance = `-- name: SelectLocationsByDistance :many
+select
+  id,
+  name,
+  longitude,
+  latitude,
+  created_at,
+  deleted_at,
+  SQRT(
+    POW (longitude - $1, 2) + POW (latitude - $2, 2)
+  ) as distance
+from
+  location
+where
+  deleted_at is null
+order by
+  distance asc
+`
+
+type SelectLocationsByDistanceParams struct {
+	Longitude float64
+	Latitude  float64
+}
+
+type SelectLocationsByDistanceRow struct {
+	ID        int32
+	Name      string
+	Longitude float64
+	Latitude  float64
+	CreatedAt pgtype.Timestamp
+	DeletedAt pgtype.Timestamp
+	Distance  float64
+}
+
+func (q *Queries) SelectLocationsByDistance(ctx context.Context, arg SelectLocationsByDistanceParams) ([]SelectLocationsByDistanceRow, error) {
+	rows, err := q.db.Query(ctx, selectLocationsByDistance, arg.Longitude, arg.Latitude)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SelectLocationsByDistanceRow
+	for rows.Next() {
+		var i SelectLocationsByDistanceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Longitude,
+			&i.Latitude,
+			&i.CreatedAt,
+			&i.DeletedAt,
+			&i.Distance,
 		); err != nil {
 			return nil, err
 		}

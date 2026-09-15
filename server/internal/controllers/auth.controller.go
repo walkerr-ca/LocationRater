@@ -77,7 +77,7 @@ func (controller *AuthController) Login(c *echo.Context) error {
 	session, err := controller.Queries.CreateSession(ctx, database.CreateSessionParams{
 		UserID:       user.ID,
 		RefreshToken: refreshTokenHash,
-		DeletedAt:    pgtype.Timestamp{Time: sessionExpiration.Time},
+		DeletedAt:    pgtype.Timestamp{Time: sessionExpiration.Time, Valid: true},
 	})
 
 	if err != nil {
@@ -122,7 +122,7 @@ func (controller *AuthController) Register(c *echo.Context) error {
 
 	ctx := context.Background()
 	existingUser, err := controller.Queries.SelectUserByUsername(ctx, request.Username)
-	if err != nil || existingUser.ID != 0 {
+	if existingUser.ID != 0 {
 		return echo.ErrBadRequest.Wrap(errors.New("username already exists"))
 	}
 

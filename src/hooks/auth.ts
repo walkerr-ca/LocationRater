@@ -37,10 +37,13 @@ export const useAuth = create<AuthState>()(
       accessToken: undefined,
       refreshToken: undefined,
       setAccessToken: (token: string) => {
+        console.log("token");
         const claims = jwtDecode(token) as AccessTokenClaims | undefined;
+        console.log("claims");
         if (!claims) return;
         if (claims.exp < Date.now() / 1000) return;
 
+        console.log("not expired");
         set({
           accessToken: {
             data: claims,

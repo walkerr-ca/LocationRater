@@ -27,7 +27,7 @@ var AuthorizationSecret string = os.Getenv("JWT_SECRET")
 var AuthorizationIssuer string = "LocationRater"
 
 func GetTokenExpiration() *jwt.NumericDate {
-	return jwt.NewNumericDate(time.Now().Add(time.Minute * 10))
+	return jwt.NewNumericDate(time.Now().Add(time.Minute * 60))
 }
 
 func GetRefreshTokenExpiration(issuedAt time.Time) *jwt.NumericDate {
@@ -60,7 +60,7 @@ func ParseToken(authorization string) (*Token, error) {
 		authorization,
 		claims,
 		func(t *jwt.Token) (any, error) {
-			return AuthorizationSecret, nil
+			return []byte(AuthorizationSecret), nil
 		},
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
 		jwt.WithIssuer(AuthorizationIssuer),

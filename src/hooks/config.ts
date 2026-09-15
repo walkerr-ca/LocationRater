@@ -5,5 +5,5 @@ interface Config {
 }
 
 export const useConfig = create<Config>(() => ({
-  apiUrl: "https://localhost:8080",
+  apiUrl: "http://localhost:8080",
 }));

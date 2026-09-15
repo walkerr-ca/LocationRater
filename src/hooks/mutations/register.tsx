@@ -4,30 +4,35 @@ import { z } from "zod";
 import { useConfig } from "../config";
 import { BaseResponse } from "../../types/response";
 
-export const loginSchema = z.object({
-  username: z.string().min(4).max(20),
-  password: z.string().min(8),
-});
+export const registerSchema = z
+  .object({
+    username: z.string().min(4).max(20),
+    password: z.string().min(8),
+    secondPassword: z.string().min(8),
+  })
+  .refine((data) => data.password === data.secondPassword, {
+    message: "Passwords do not match",
+    path: ["secondPassword"],
+  });
 
-export type LoginSchema = z.infer<typeof loginSchema>;
-export type LoginResponse = BaseResponse<{
-  token: string;
-  refreshToken: string;
+export type RegisterSchema = z.infer<typeof registerSchema>;
+export type RegisterResponse = BaseResponse<{
+  id: number;
 }>;
 
-export const useLoginMutation = () => {
+export const useRegisterMutation = () => {
   const { apiUrl } = useConfig();
 
   const { mutate, isIdle, isPending, isSuccess, isError, error, data } = useMutation({
-    mutationKey: ["auth", "login"],
-    mutationFn: async (input: LoginSchema) => {
-      const { success, error } = await loginSchema.safeParseAsync(input);
+    mutationKey: ["auth", "register"],
+    mutationFn: async (input: RegisterSchema) => {
+      const { success, error } = await registerSchema.safeParseAsync(input);
 
       if (!success) {
         throw error;
       }
 
-      const response = await fetch(`${apiUrl}/auth/login`, {
+      const response = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -40,7 +45,7 @@ export const useLoginMutation = () => {
         throw new Error(data.error);
       }
 
-      return data as LoginResponse;
+      return data.result as RegisterResponse;
     },
   });
 

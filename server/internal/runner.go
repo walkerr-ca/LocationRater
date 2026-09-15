@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 
@@ -17,14 +19,24 @@ func Start(app *types.App) {
 
 	e.Use(middleware.RequestID())
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20.0)))
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogMethod: true,
-		LogStatus: true,
-		LogURI:    true,
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete, http.MethodOptions},
 	}))
+	/*e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	LogMethod: true,
+	LogStatus: true,
+	LogURI:    true,
+	}))*/
 
 	usersController := controllers.NewUsersController(app.Database)
 	usersController.RegisterRoutes(e)
+
+	authController := controllers.NewAuthController(app.Database)
+	authController.RegisterRoutes(e)
+
+	reviewsController := controllers.NewReviewsController(app.Database)
+	reviewsController.RegisterRoutes(e)
 
 	if err := e.Start(":8080"); err != nil {
 		e.Logger.Error("failed to start Echo server", "error", err)
