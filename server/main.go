@@ -19,10 +19,12 @@ func main() {
 		// AddSource: true,
 	}))
 
-	err := godotenv.Load()
-	if err != nil {
-		logger.Error("failed to load environment variables", "error", err)
-		os.Exit(1)
+	if os.Getenv("DATABASE_URL") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			logger.Error("failed to load environment variables", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	databaseUrl := os.Getenv("DATABASE_URL")
