@@ -1,6 +1,6 @@
 # LocationRater
 
-A simple location-based rating application built with Expo and Go.
+A simple location-based rating application built with Ionic and Go.
 
 ## Dependencies
 
@@ -33,5 +33,10 @@ Shut down the container and delete any persistent data:
 ## Environment Variables
 
 ```
+###> Local Environment
+DBMATE_MIGRATIONS_DIR="./server/sql/migrations"
+DBMATE_SCHEMA_FILE="./server/sql/schema.sql"
 
+###> Data Persistence
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/lr"
 ```
