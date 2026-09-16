@@ -127,7 +127,7 @@ const Login: React.FC = () => {
             Login
           </IonButton>
           <Link to="/register">
-            <IonButton color="primary">Register</IonButton>
+            <IonButton color="secondary">Register</IonButton>
           </Link>
         </div>
       </IonContent>
